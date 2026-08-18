@@ -245,13 +245,65 @@ AI가 다음에 낼 수 있는 첫 글자: {possible_starts}
 지금까지 사용한 단어: {used}
 """
 
+    # 노트북에서 배운 few-shot 방식으로 원하는 판정과 JSON 형식을 보여준다.
+    예시문답 = [
+        {
+            "role": "user",
+            "content": (
+                "사용자가 낸 단어: 자동차\n"
+                "AI가 다음에 낼 수 있는 첫 글자: 차\n"
+                "지금까지 사용한 단어: 기차, 자동차"
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": (
+                '{"valid": true, "reason": "실제로 존재하는 일반 명사입니다.", '
+                '"ai_word": "차표"}'
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "사용자가 낸 단어: 기체크로마토질량분석법\n"
+                "AI가 다음에 낼 수 있는 첫 글자: 법\n"
+                "지금까지 사용한 단어: 이야기, 기체크로마토질량분석법"
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": (
+                '{"valid": true, "reason": "실제로 쓰이는 과학 전문 용어입니다.", '
+                '"ai_word": "법률"}'
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "사용자가 낸 단어: 나랄라\n"
+                "AI가 다음에 낼 수 있는 첫 글자: 라, 나\n"
+                "지금까지 사용한 단어: 바나나, 나랄라"
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": (
+                '{"valid": false, "reason": "실제로 존재하는 단어가 아닙니다.", '
+                '"ai_word": ""}'
+            ),
+        },
+    ]
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        *예시문답,
+        {"role": "user", "content": user_prompt},
+    ]
+
     client = OpenAI()
     response = client.chat.completions.create(
         model=API_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
+        messages=messages,
         response_format={"type": "json_object"},
         max_completion_tokens=500,
     )
@@ -267,7 +319,7 @@ with st.sidebar:
     st.metric("현재 점수", f"{st.session_state.score}점")
     st.metric("최고 점수", f"{st.session_state.high_score}점")
     st.write(f"사용한 단어: **{len(st.session_state.used_words)}개**")
-    if st.button("새 게임", use_container_width=True):
+    if st.button("새 게임", width="stretch"):
         reset_game()
         st.rerun()
 
